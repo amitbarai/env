@@ -1,0 +1,5 @@
+---
+  tomcat_name: "tom"
+  tomcat_ajp: "8013"
+  tomcat_http: "8084"
+  tomcat_shutdown: "8015"

@@ -1,0 +1,46 @@
+---
+- name: Install tomcat web server
+  yum: name=tomcat state=present
+  when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'"
+
+- name: Creates directory
+  file: path=/app/{{ tomcat_name }} state=directory
+  
+- name: Symlink install directory
+  file: src=/usr/share/tomcat/bin path=/app/{{ tomcat_name }}/bin state=link
+  
+- name: Symlink install directory
+  file: src=/usr/share/tomcat/lib path="/app/{{ tomcat_name }}/lib" state=link
+  
+- name: Creates directory conf
+  file: path=/app/{{ tomcat_name }}/conf state=directory
+
+- name: Creates directory logs
+  file: path=/app/{{ tomcat_name }}/logs state=directory
+
+- name: Creates directory webapps
+  file: path=/app/{{ tomcat_name }}/webapps state=directory
+
+- name: Creates directory work
+  file: path=/app/{{ tomcat_name }}/work state=directory
+
+- name: Creates directory temp
+  file: path=/app/{{ tomcat_name }}/temp state=directory
+   
+- name: Copy configuration files to conf directory
+  shell: cp -r /etc/tomcat/* /app/{{ tomcat_name }}/conf/
+
+- name: Changing ports in server.xml file
+  shell: sed -i 's/8005/{{ tomcat_shutdown }}/g; s/8080/{{ tomcat_http }}/g; s/8010/{{ tomcat_ajp }}/g' /app/{{ tomcat_name }}/conf/server.xml
+
+- name: Configure environment Tomcat server
+  template: src=tomcat.conf dest=/app/{{ tomcat_name }}/conf/
+
+- name: Change ownership of Tomcat installation
+  file: path=/app/{{ tomcat_name }} owner=tomcat group=tomcat state=directory recurse=yes
+  
+- name: create start up script
+  template:  src=tomcat.service dest=/etc/systemd/system/tomcat-{{ tomcat_name }}.service
+
+- name: Start Tomcat {{ tomcat_name}}
+  service: name="tomcat-{{ tomcat_name}}" state=started enabled=yes

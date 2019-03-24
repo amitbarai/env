@@ -1,0 +1,16 @@
+/app/{{ tomcat_name }}/logs/*.out /app/{{ tomcat_name }}/logs/*.log {
+su tomcat8 tomcat8
+copytruncate
+daily
+compress
+missingok
+dateext
+dateyesterday
+dateformat .%Y-%m-%d
+notifempty
+create 640 tomcat8 tomcat8
+sharedscripts
+postrotate
+find /app/{{ tomcat_name }}/logs/ -type f -mtime +30 -delete
+endscript
+}

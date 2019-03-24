@@ -1,0 +1,9 @@
+---
+  tomcat_name: "tom"
+  tomcat_ajp: "8009"
+  tomcat_http: "8080"
+  tomcat_shutdown: "8005"
+  Xms: "512M"
+  Xmx: "1024M"
+  
+
