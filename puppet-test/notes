@@ -1,0 +1,251 @@
+yum.puppetlabs.com
+rpm -ivh https://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm
+yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+yum update
+
+Find puppet repo on 
+===================
+http://yum.puppetlabs.com/puppet5/
+http://yum.puppetlabs.com/puppet5/puppet5-release-el-7.noarch.rpm
+apt.puppetlabs.com
+yum.puppetlabs.com
+
+
+
+# cat /etc/hostname
+master.internal
+
+vim /etc/profile.d/puppet-agent.sh
+export PATH=$PATH:/opt/puppetlabs/puppet/bin
+
+vim /etc/sysconfig/puppetserver
+AVA_ARGS="-Xms200m -Xmx600m -XX:MaxPermSize=256m"
+
+yum install -y puppetserver vim 		#--> on puppet master
+systemctl status puppetserver.service   #--> on puppet master
+systemctl status puppetserver.service   #--> on puppet master
+
+vim /etc/puppetlabs/puppet/puppet.conf  #--> on puppet master
+[main]
+certname = master.internal
+server = master.internal
+
+
+yum install -y puppet-agent vim			#--> on puppet agent
+systemctl status puppet.service         #--> on puppet agent
+systemctl enable puppet.service			#--> on puppet agent
+
+
+
+Configuration files 
+==================
+/etc/puppetlabs/puppet/ - contains global configuration file like heira.conf, auth.conf, puppet.conf and ssl directory. 
+/etc/puppetlabs/puppetserver- contains configuration files related to server logs using config file logback.xml, request-logging.xml file and directory conf.d, services.d.
+/etc/puppetlabs/puppetserver/conf.d- 
+List File and Settings File
+global.conf
+webserver.conf
+web-routes.conf
+puppetserver.conf
+auth.conf
+master.conf (deprecated)
+ca.conf (deprecated)
+ 
+/etc/sysconfig/puppet - parmeter file for puppet service
+/etc/sysconfig/puppetserver - environment specific parameters
+/opt/puppetlabs/ - related binary
+
+
+vim /etc/puppetlabs/puppet/puppet.conf  #--> on puppet agent
+[main]
+certname = agent.internal
+server = master.internal
+
+/etc/puppetlabs/puppet/ssl/ #--> maintain all certificates
+
+#gem install librarian-puppet --> To install librarian-puppet
+
+#puppet describe --list -->  resource types can be viewed using the “describe” command along with the “-list” option.
+
+# puppet resource user 
+user { 'abrt': 
+   ensure           => 'present', 
+   gid              => '173', 
+   home             => '/etc/abrt', 
+   password         => '!!', 
+   password_max_age => '-1', 
+   password_min_age => '-1', 
+   shell            => '/sbin/nologin', 
+   uid              => '173', 
+} 
+
+
+# puppet resource user tomcat --> Listing the Resources of a Particular User
+user { 'apache': 
+   ensure           => 'present', 
+   comment          => 'tomcat', 
+   gid              => '100', 
+   home             => '/var/www', 
+   password         => '!!', 
+   password_max_age => '-1', 
+   password_min_age => '-1', 
+   shell            => '/sbin/nologin', 
+   uid              => '100’, 
+}
+
+
+# puppet describe user --> about the user resource along with all its configurable attributes.
+
+
+
+
+Commands related to puppet cert
+================================
+puppet cert list
+puppet cert sign agentname
+puppet cert list --all 
+puppet cert clean agentname
+
+To view Puppet resources
+========================
+puppet resource user ec2-user
+puppet resource --type
+puppet resource --help
+
+To view Puppet resources type
+=============================
+puppet resource --type | grep -i user
+puppet describe user
+
+
+Flow to write puppet code
+--------------------------
+create > check > test > Run
+1. write down > 
+2. #puppet parser validate 
+3. #puppet apply --noop 
+4. #puppet apply 
+
+# puppet parser validate <exaple.pp>       --> To check syntax
+# puppet apply <exmple.pp> --noop          --> To run manifest to check what changes would be applied 
+# puppet apply <exmple.pp>		           --> To run manifests
+
+To get help
+===========
+#puppet help 
+
+Classes
+=======
+classes - bundle of resources, class name should be unique and can be declared once.
+It will be applied only when "include" (declared in code).
+Classes must be unique and declared only once.
+
+
+Example
+-------
+class class_name {
+  service { 'title':
+    ensure => 'present'
+  }
+  file { 'title':
+    ensure => 'present'
+  }
+}
+include class_name
+
+
+Manifests
+---------
+Puppet language file called manifest with .pp extension 
+/etc/puppetlabs/code/environments/production/manifests/site.pp -- main manifest file or first entry point for puppet creation.
+
+Flow to write puppet code for multiple nodes
+--------------------------
+create > check > test > Run
+#write down > #puppet parser validate > #puppet agent -tv --noop > #puppet agent -tv 
+
+# puppet parser validate <exaple.pp>		--> To check syntax
+# puppet agent -tv --noop 					--> To run manifest to check what changes would be applied on agent nodes
+# puppet agent -tv		   					--> To run manifests on agent node
+
+Node 
+----
+- Node is use to run manifests on particular host file.
+- To avoid confusion we never write class/role/resource/profile in site.pp file.
+- site.pp file is used to manage node (host inventory)
+
+node 'name' {
+  include ntp_service
+}
+
+variables
+---------
+Variables are always start with $ sign (eg $var) 
+$var = "value1"
+file { "/etc/ntp.conf" :
+	ensure  => "present",
+	content => "$var"
+}
+
+factor
+------
+it provides information and facts about the system
+# factor
+# factor os
+# factor os.release.full
+
+modules
+-------
+It is self content about class (content about resources) and data. 
+It has own directory structure and manifests
+modules           #
+└── downcased_module_name/ 
+	 ├── files/ 
+	 ├── manifests/ 
+	 │	 └── init.pp 
+	 ├── lib/ 
+	 │	 ├── puppet/ 
+	 │	 ├── parser/ 
+	 │	 │   └── functions 
+	 │	 ├── provider/ 
+	 │	 ├── type/ 
+	 │	 └── facter/ 
+	 ├── templates/ 
+	 ├── facts.d/
+	 ├── examples/
+	 ├── spec/
+	 ├── functions/
+	 ├── types/
+	 └── README
+- assign modules directly into manifest is not good practice for complex environment due to which created profiles and roles invented 
+
+Profile
+-------
+It is bundle of multiple modules
+
+Roles
+------ 
+It is bundle of profiles
+
+
+Hiera
+-----
+it allow to store data which is part of puppet code in separated file hiera.yml file. Puppet modules can lookup for data which need in hiera.
+
+#cat hiera.yml
+---
+ntp::servers:
+  - pool.ntp.org
+  
+
+Mcollective  
+-----------
+mco is framework which turn pull based model to push based module to perform quick and hot task from puppet master to node agent.
+# puppet config print | grep -i module --> To view puppet 	default modules in directory 
+
+
+
+
+
+Librarian puppet
+================
