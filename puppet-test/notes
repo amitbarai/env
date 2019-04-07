@@ -244,8 +244,59 @@ mco is framework which turn pull based model to push based module to perform qui
 # puppet config print | grep -i module --> To view puppet 	default modules in directory 
 
 
+Creating module 
+===============
+
+
+# puppet module generate --skip-interview <puppetforge_name>-<module_name>
+# puppet module generate --skip-interview amitbarai-tomcat
+# puppet module build
+
+
+[root@rmaster puppet]# tree
+tomcat
+    ├── examples
+    │   └── init.pp
+    ├── Gemfile
+    ├── manifests
+    │   └── init.pp
+    ├── metadata.json => It holds important information about puppet forge 
+    ├── Rakefile
+    ├── README.md
+    └── spec
+        ├── classes
+        │   └── init_spec.rb
+        └── spec_helper.rb
+
+[root@rmaster tomcat]# cat metadata.json
+{
+  "name": "amitbarai-tomcat",
+  "version": "0.1.0",
+  "author": "amitbarai",
+  "summary": "To install and test Tomcat on linux",
+  "license": "Apache-2.0",
+  "source": "git",
+  "project_page": "github",
+  "issues_url": "github",
+  "dependencies": [
+    {
+      "name": "puppetlabs-stdlib",
+      "version_requirement": ">= 1.0.0"
+    }
+  ],
+  "data_provider": null
+}
 
 
 
 Librarian puppet
 ================
+- It manages module dependencies using puppetfile.
+- Dependencies are defined in metadata.json flle of module, needed when one module includes or uses another in its class.
+- Dependencies are defined in "Puppetfile" managed by librarian-puppet, needed to manage tree require for puppet infrastructure.
+- It able to fetch data from puppet forge and github. Also able to fetch data from metadata.json file.
+
+# gem install librarian-puppet 			#=> To install librarian puppet package on server
+# librarian-puppet init 				#=> To create Puppetfile 
+# vim Puppetfile						#=> To Add puppet forge or git location dependencies
+# librarian-puppet install 				#=> To fetch data from puppetfile mentioned sources (puppet forge or git)
