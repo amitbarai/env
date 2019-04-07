@@ -62,8 +62,12 @@ puppet_centos() {
                 		yum install -y \
 						http://yum.puppetlabs.com/puppet5/puppet5-release-el-7.noarch.rpm && \
 						yum -y update && \
-						yum install -y puppetserver
+						yum install -y \
+						puppetserver \
+						gem
+						gem install librarian-puppet
 						mkdir -p /app/puppet
+
 }
 
 
