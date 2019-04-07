@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#####################################################
+############### Checking os version #################
 findos=`lsb_release -i >/dev/null 2>&1; echo $?`
 if [ "${findos}" -ne "0" ]
 then
@@ -8,8 +8,8 @@ then
 else
   myos=`([ -f /etc/redhat-release ] && cat /etc/redhat-release || cat /proc/version_signature  ) | awk  '{gsub (/[ \t]+/, ""); print substr($1,0,6); }'| tr 'A-Z' 'a-z'`
 fi
-#####################################################
 
+#################### Creating os alise #############
 alias ll='ls -l'
 alias ro="sudo -i"
 #mkdir -p /app/{git,ansible,tomcat,docker/{jenkins/data,tomcat-prod/data,tomcat-dev/data},apache,backup.`date +%Y%m%d`}
@@ -23,37 +23,56 @@ docker_practice_ubuntu() {
                         curl \
                         software-properties-common
                         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-						sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+						            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
                         apt-get -y update && apt-get -y install docker-ce docker-compose gnupg2 pass
                         systemctl start docker
-#                       mkdir -p /app/{docker/{jenkins/data,tomcat-prod/data,tomcat-dev/data,testing},composetest,backup.`date +%Y%m%d`} 
-#						mkdir -p /app/docker/jenkins/data && cd /app/docker/jenkins  && wget https://updates.jenkins-ci.org/download/war/2.150.1/jenkins.war
-						mkdir -p /app/docker/jenkins/data 
+                        # mkdir -p /app/{docker/{jenkins/data,tomcat-prod/data,tomcat-dev/data,testing},composetest,backup.`date +%Y%m%d`} 
+                        # mkdir -p /app/docker/jenkins/data && cd /app/docker/jenkins  && wget https://updates.jenkins-ci.org/download/war/2.150.1/jenkins.war
+						            mkdir -p /app/docker/jenkins/data 
 }
 lxc_practice_ubuntu() {
-						apt -y install lxc lxc-templates sshpass
-						systemctl start lxc.service
-						lxc-create -n web1 -t ubuntu
-						lxc-create -n web2 -t ubuntu
-						lxc-create -n web3 -t ubuntu
-						lxc-start -n web1 -d
-						lxc-start -n web2 -d
-						lxc-start -n web3 -d
-						lxc-ls -f | awk -F' ' '{print $5,$1}' | sed 's/,//g' | grep -v IPV4 >> /etc/hosts
-						ssh-keygen -t rsa
-						sshpass -p ubuntu ssh-copy-id ubuntu@`lxc-ls -f | awk -F' ' '{print $1}'`
-						#export auth=`cat /root/.ssh/id_rsa.pub` && sshpass -p ubuntu ssh ubuntu@web2 "sudo mkdir /root/.ssh/" && echo $auth >> /root/.ssh/authorized_keys
+						            apt -y install lxc lxc-templates sshpass
+						            systemctl start lxc.service
+						            lxc-create -n web1 -t ubuntu
+						            lxc-create -n web2 -t ubuntu
+						            lxc-create -n web3 -t ubuntu
+						            lxc-start -n web1 -d
+						            lxc-start -n web2 -d
+						            lxc-start -n web3 -d
+						            lxc-ls -f | awk -F' ' '{print $5,$1}' | sed 's/,//g' | grep -v IPV4 >> /etc/hosts
+						            ssh-keygen -t rsa
+						            sshpass -p ubuntu ssh-copy-id ubuntu@`lxc-ls -f | awk -F' ' '{print $1}'`
+						            # export auth=`cat /root/.ssh/id_rsa.pub` && sshpass -p ubuntu ssh ubuntu@web2 "sudo mkdir /root/.ssh/" && echo $auth >> /root/.ssh/authorized_keys
 }
 
 git_practice_ubuntu() {
-						apt-get install git
-						cd /app/docker && git clone https://github.com/amitbarai/docker-test-env.git
-						}
-		
+						            apt-get install git
+						            cd /app/docker && git clone https://github.com/amitbarai/docker-test-env.git
+}
+
+git_centos() {
+                        yum install -y \
+												vim \
+												git && \
+												mkdir -p /app/github &&
+												git clone https://github.com/amitbarai/env.git
+} 
+
+puppet_centos() {
+                 yum install -y \
+								 http://yum.puppetlabs.com/puppet5/puppet5-release-el-7.noarch.rpm && \
+								 yum -y update && \
+								 yum install -y puppetserver
+}
+
+
 case $myos in 
-				ubuntu) docker_practice_ubuntu
-						git_practice_ubuntu;;
-				
-					 *)  echo "os not supported"
-						 exit;;
+				      ubuntu) docker_practice_ubuntu
+						           git_practice_ubuntu;;
+              
+              centos) git_centos
+							        puppet_centos;;
+
+					         *) echo "os not supported"
+						          exit;;
 esac 
