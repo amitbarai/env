@@ -10,6 +10,7 @@ http://yum.puppetlabs.com/puppet5/puppet5-release-el-7.noarch.rpm
 apt.puppetlabs.com
 yum.puppetlabs.com
 
+# Puppet work on port 8140
 
 
 # cat /etc/hostname
@@ -21,19 +22,19 @@ export PATH=$PATH:/opt/puppetlabs/puppet/bin
 vim /etc/sysconfig/puppetserver
 AVA_ARGS="-Xms200m -Xmx600m -XX:MaxPermSize=256m"
 
-yum install -y puppetserver vim 		#--> on puppet master
-systemctl status puppetserver.service   #--> on puppet master
-systemctl status puppetserver.service   #--> on puppet master
+yum install -y puppetserver vim 		#=> on puppet master
+systemctl status puppetserver.service   #=> on puppet master
+systemctl status puppetserver.service   #=> on puppet master
 
-vim /etc/puppetlabs/puppet/puppet.conf  #--> on puppet master
+vim /etc/puppetlabs/puppet/puppet.conf  #=> on puppet master
 [main]
 certname = master.internal
 server = master.internal
 
 
-yum install -y puppet-agent vim			#--> on puppet agent
-systemctl status puppet.service         #--> on puppet agent
-systemctl enable puppet.service			#--> on puppet agent
+yum install -y puppet-agent vim			#=> on puppet agent
+systemctl status puppet.service         #=> on puppet agent
+systemctl enable puppet.service			#=> on puppet agent
 
 
 
@@ -56,16 +57,44 @@ ca.conf (deprecated)
 /opt/puppetlabs/ - related binary
 
 
-vim /etc/puppetlabs/puppet/puppet.conf  #--> on puppet agent
+vim /etc/puppetlabs/puppet/puppet.conf  #=> on puppet agent
 [main]
 certname = agent.internal
 server = master.internal
 
-/etc/puppetlabs/puppet/ssl/ #--> maintain all certificates
+Main Config Section
+--------------------
+[main] 
+certname = Test1.vipin.com 
+server = TestingSrv 
+environment = production 
+runinterval = 1h 
 
-#gem install librarian-puppet --> To install librarian-puppet
+Puppet Master Config File
+-------------------------
+[main] 
+certname = puppetmaster.vipin.com 
+server = MasterSrv 
+environment = production 
+runinterval = 1h 
+strict_variables = true  
 
-#puppet describe --list -->  resource types can be viewed using the “describe” command along with the “-list” option.
+[master] 
+dns_alt_names = MasterSrv,brcleprod01.vipin.com,puppet,puppet.test.com 
+reports = puppetdb 
+storeconfigs_backend = puppetdb 
+storeconfigs = true 
+environment_timeout = unlimited 
+
+
+
+/etc/puppetlabs/puppet/ssl/ #=> maintain all certificates
+
+#gem install librarian-puppet #=> To install librarian-puppet
+
+#puppet describe --list #=>  resource types can be viewed using the “describe” command along with the “-list” option.
+
+#puppet resource --type 
 
 # puppet resource user 
 user { 'abrt': 
@@ -80,7 +109,7 @@ user { 'abrt':
 } 
 
 
-# puppet resource user tomcat --> Listing the Resources of a Particular User
+# puppet resource user tomcat #=> Listing the Resources of a Particular User
 user { 'apache': 
    ensure           => 'present', 
    comment          => 'tomcat', 
@@ -94,7 +123,7 @@ user { 'apache':
 }
 
 
-# puppet describe user --> about the user resource along with all its configurable attributes.
+# puppet describe user #=> about the user resource along with all its configurable attributes.
 
 
 
@@ -118,6 +147,8 @@ puppet resource --type | grep -i user
 puppet describe user
 
 
+puppet config print 
+
 Flow to write puppet code
 --------------------------
 create > check > test > Run
@@ -126,9 +157,9 @@ create > check > test > Run
 3. #puppet apply --noop 
 4. #puppet apply 
 
-# puppet parser validate <exaple.pp>       --> To check syntax
-# puppet apply <exmple.pp> --noop          --> To run manifest to check what changes would be applied 
-# puppet apply <exmple.pp>		           --> To run manifests
+# puppet parser validate <exaple.pp>       #=> To check syntax
+# puppet apply <exmple.pp> --noop          #=> To run manifest to check what changes would be applied 
+# puppet apply <exmple.pp>		           #=> To run manifests
 
 To get help
 ===========
@@ -164,9 +195,9 @@ Flow to write puppet code for multiple nodes
 create > check > test > Run
 #write down > #puppet parser validate > #puppet agent -tv --noop > #puppet agent -tv 
 
-# puppet parser validate <exaple.pp>		--> To check syntax
-# puppet agent -tv --noop 					--> To run manifest to check what changes would be applied on agent nodes
-# puppet agent -tv		   					--> To run manifests on agent node
+# puppet parser validate <exaple.pp>		#=> To check syntax
+# puppet agent -tv --noop 					#=> To run manifest to check what changes would be applied on agent nodes
+# puppet agent -tv		   					#=> To run manifests on agent node
 
 Node 
 ----
@@ -199,24 +230,29 @@ modules
 It is self content about class (content about resources) and data. 
 It has own directory structure and manifests
 modules           #
-└── downcased_module_name/ 
-	 ├── files/ 
-	 ├── manifests/ 
-	 │	 └── init.pp 
-	 ├── lib/ 
-	 │	 ├── puppet/ 
-	 │	 ├── parser/ 
-	 │	 │   └── functions 
-	 │	 ├── provider/ 
-	 │	 ├── type/ 
-	 │	 └── facter/ 
-	 ├── templates/ 
-	 ├── facts.d/
-	 ├── examples/
-	 ├── spec/
-	 ├── functions/
-	 ├── types/
-	 └── README
+└── downcased_module_name/  #=> 
+	 ├── files/             #=> Static files required by puppet configuration 
+	 ├── manifests/         #=> It contain logic written in puppet language 
+	 │	 └── init.pp        #=> 
+	 ├── lib/               #=> contains Costume plugin such as costume facts or resources   
+	 │	 ├── puppet/        #=> 
+	 │	 ├── parser/        #=> 
+	 │	 │   └── functions  #=> 
+	 │	 ├── provider/      #=> 
+	 │	 ├── type/          #=> 
+	 │	 └── facter/        #=> 
+	 ├── templates/         #=> Dynamic file required by puppet configuration 
+	 ├── facts.d/           #=> Contains external facts in form of yaml or json or text files
+	 ├── examples/          #=> Contains smoke test files for configured manifests 
+	 ├── spec/              #=> Contains unit and other tests for the modules 
+	 ├── functions/         #=> 
+	 ├── types/             #=> 
+	 ├── Gemfile			    #=> It contains rubygems required for module activities.
+	 ├── metadata.json 			#=> It holds important information about puppet forge 
+	 ├── Rakefile            	#=> Contains series of tasks specific to testing module 
+	 ├── CHANGELOG.md 			#=> COntains release specific module change information such as bug fixes, features, known issues and so on. 
+	 └── README                 #=> Contains documentation for the module 
+	 
 - assign modules directly into manifest is not good practice for complex environment due to which created profiles and roles invented 
 
 Profile
@@ -241,32 +277,18 @@ ntp::servers:
 Mcollective  
 -----------
 mco is framework which turn pull based model to push based module to perform quick and hot task from puppet master to node agent.
-# puppet config print | grep -i module --> To view puppet 	default modules in directory 
+# puppet config print | grep -i module #=> To view puppet 	default modules in directory 
 
 
 Creating module 
 ===============
-
-
 # puppet module generate --skip-interview <puppetforge_name>-<module_name>
 # puppet module generate --skip-interview amitbarai-tomcat
+# bundle install #=> To install gem  mentioned in gemfile and can be skipped
 # puppet module build
 
+Note : --skip-interview to skip questionnaires from metadata.json file 
 
-[root@rmaster puppet]# tree
-tomcat
-    ├── examples
-    │   └── init.pp
-    ├── Gemfile
-    ├── manifests
-    │   └── init.pp
-    ├── metadata.json => It holds important information about puppet forge 
-    ├── Rakefile
-    ├── README.md
-    └── spec
-        ├── classes
-        │   └── init_spec.rb
-        └── spec_helper.rb
 
 [root@rmaster tomcat]# cat metadata.json
 {
@@ -300,3 +322,62 @@ Librarian puppet
 # librarian-puppet init 				#=> To create Puppetfile 
 # vim Puppetfile						#=> To Add puppet forge or git location dependencies
 # librarian-puppet install 				#=> To fetch data from puppetfile mentioned sources (puppet forge or git)
+
+
+# cat Puppetfile
+=================
+#!/usr/bin/env ruby
+#^syntax detection
+forge "https://forgeapi.puppetlabs.com"
+# use dependencies defined in metadata.json
+metadata
+# use dependencies defined in Modulefile
+# modulefile
+# A module from the Puppet Forge
+mod 'puppetlabs-stdlib'
+# A module from git
+mod 'puppetlabs-ntp',
+    :git => 'git://github.com/puppetlabs/puppetlabs-ntp.git'
+# A module from a git branch/tag
+# mod 'puppetlabs-apt',
+#   :git => 'https://github.com/puppetlabs/puppetlabs-apt.git',
+#   :ref => '1.4.x'
+# A module from Github pre-packaged tarball
+# mod 'puppetlabs-apache', '0.6.0', :github_tarball => 'puppetlabs/puppetlabs-apache'
+
+
+r10k
+=====
+- It create isolated group of modules and agents
+- Contains different manifests and module paths
+- It useful for testing or development purpose 
+- on puppet agent node environment set in puppet.conf file
+# gem install r10k --no-rdoc --no-ri 								#=> To install r10k
+# r10k deploy environment -p -c /etc/puppetlabs/puppet/r10k.yaml    #=> To deploy environment 
+
+
+# cat /etc/puppetlabs/puppet/r10k.yaml
+:cachedir: '/var/cache/r10k'    #=> The location to use for storing cached Git repos
+:sources:						#=> A list of git repositories to create
+  # This will clone the git repository and instantiate an environment per
+  # branch in /etc/puppetlabs/code/environments
+  :my-org:
+    remote: 'git@github.com:$_Insert GitHub Organization Here_$/$_Insert GitHub Repository That Will Be Used For Your Puppet Code Here_$'
+    basedir: '/etc/puppetlabs/code/environments'
+	prefix: 'false'
+
+	
+environment.conf
+==================
+It defines module path and manifest file location which will be entry point for puppet environment.
+
+# cat environment.conf 
+manifest = manifests/site.pp
+modulepath = site:modules:$basemodulepath
+environment_timeout = 0
+
+
+hiera.conf
+=======================
+
+Listen <% = @httpd_port %>
