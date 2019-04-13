@@ -380,4 +380,5 @@ environment_timeout = 0
 hiera.conf
 =======================
 
+Below syntax use for replace value from hiera variables
 Listen <% = @httpd_port %>
