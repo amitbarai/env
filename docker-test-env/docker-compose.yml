@@ -21,7 +21,6 @@ services:                      # Containers. Same as docker run
     user: root
     environment:
       - JENKINS_SLAVE_AGENT_PORT=50001
-    container_name: myjenkins
     ports:
       - "80:8080"
     volumes:
