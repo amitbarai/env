@@ -1,0 +1,23 @@
+1. Install chocolatey with cmd.exe
+@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+
+OR 
+
+1. Install chocolatey with PowerShell.exe
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+2. upgrade chocolatey
+choco upgrade chocolatey
+
+1. Install PDK by running 
+choco install pdk
+
+2. Open a new PowerShell window to re-source your profile and make PDK available to your PATH. 
+note : On PowerShell 4.0 or later, PDK loads automatically and pdk commands are available to the prompt. On PowerShell 2.0 or 3.0, you'll need to add the PowerShell module to your profile. 
+
+3. To upgrade PDK to the most recent release, run 
+choco upgrade pdk 
+
+
+
+`Import-Module -Name "$($env:ProgramFiles)\WindowsPowerShell\Modules\PuppetDevelopmentKit"
